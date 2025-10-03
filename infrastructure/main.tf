@@ -25,6 +25,15 @@ provider "azurerm" {
 }
 
 # ------------------------------------------------------------------
+#  AZURE INFRASTRUCTURE (The Home for Your Microservices)
+# ------------------------------------------------------------------
+
+resource "azurerm_resource_group" "rg" {
+  name     = "mesh-project-rg"
+  location = "Central India"
+}
+
+# ------------------------------------------------------------------
 #  AZURE CONTAINER APPS (Cost-Effective Microservices Host)
 # ------------------------------------------------------------------
 
@@ -32,17 +41,17 @@ resource "azurerm_container_app_environment" "aca_env" {
   name                       = "mesh-aca-env"
   location                   = azurerm_resource_group.rg.location
   resource_group_name        = azurerm_resource_group.rg.name
-  # The Infrastructure Resource Group is required for Consumption (Free) Plan
+  # Consumption Plan is required for the free tier (scales to zero)
   infrastructure_resource_group_name = "${azurerm_resource_group.rg.name}-infra"
-  # Set to null or remove if not using a Log Analytics Workspace
   log_analytics_workspace_id = null
+
+  workload_profile {
+    name = "Consumption"
+    workload_profile_type = "Consumption"
+  }
 }
 
-# ------------------------------------------------------------------
-#  1. API Gateway (EXTERNAL FACING)
-# ------------------------------------------------------------------
-# This service needs public ingress to handle incoming client traffic.
-
+# 1. API Gateway (EXTERNAL FACING)
 resource "azurerm_container_app" "gateway_app" {
   name                    = "api-gateway-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
@@ -51,29 +60,24 @@ resource "azurerm_container_app" "gateway_app" {
   template {
     container {
       name   = "api-gateway"
-      # IMPORTANT: Update this image path after setting up your Container Registry/CI
-      image  = "yourregistry/api-gateway:latest"
+      image  = "yourregistry/api-gateway:latest" # Placeholder: Update with your ACR path
       cpu    = 0.5
       memory = "1.0Gi"
     }
     scale {
-      min_replicas = 0 # Scales down to zero when idle (maximizes free tier usage)
+      min_replicas = 0 # KEY: Scales down to zero when idle
       max_replicas = 1
     }
   }
 
   ingress {
     external_enabled = true  # PUBLIC ACCESS
-    target_port      = 8080 # Service port
+    target_port      = 8080
     transport        = "auto"
   }
 }
 
-# ------------------------------------------------------------------
-#  2. User Service (INTERNAL ONLY)
-# ------------------------------------------------------------------
-# This service is protected and only accessed by the API Gateway.
-
+# 2. User Service (INTERNAL ONLY)
 resource "azurerm_container_app" "user_app" {
   name                    = "user-service-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
@@ -99,10 +103,7 @@ resource "azurerm_container_app" "user_app" {
   }
 }
 
-# ------------------------------------------------------------------
-#  3. Admin Service (INTERNAL ONLY)
-# ------------------------------------------------------------------
-
+# 3. Admin Service (INTERNAL ONLY)
 resource "azurerm_container_app" "admin_app" {
   name                    = "admin-service-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
@@ -122,16 +123,13 @@ resource "azurerm_container_app" "admin_app" {
   }
 
   ingress {
-    external_enabled = false # INTERNAL ACCESS ONLY
+    external_enabled = false
     target_port      = 8080
     transport        = "auto"
   }
 }
 
-# ------------------------------------------------------------------
-#  4. Classroom Service (INTERNAL ONLY)
-# ------------------------------------------------------------------
-
+# 4. Classroom Service (INTERNAL ONLY)
 resource "azurerm_container_app" "classroom_app" {
   name                    = "classroom-service-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
@@ -151,18 +149,13 @@ resource "azurerm_container_app" "classroom_app" {
   }
 
   ingress {
-    external_enabled = false # INTERNAL ACCESS ONLY
+    external_enabled = false
     target_port      = 8080
     transport        = "auto"
   }
 }
 
-# ------------------------------------------------------------------
-#  5. Discovery Server (INTERNAL ONLY)
-# ------------------------------------------------------------------
-# Note: For a true Discovery Server (like Eureka), you might eventually want min_replicas = 1
-# to ensure it's always running, but we are setting it to 0 here for maximum cost-saving.
-
+# 5. Discovery Server (INTERNAL ONLY)
 resource "azurerm_container_app" "discovery_app" {
   name                    = "discovery-server-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
@@ -182,21 +175,12 @@ resource "azurerm_container_app" "discovery_app" {
   }
 
   ingress {
-    external_enabled = false # INTERNAL ACCESS ONLY
+    external_enabled = false
     target_port      = 8080
     transport        = "auto"
   }
 }
-# ------------------------------------------------------------------
-#  AZURE INFRASTRUCTURE (The Home for Your Microservices)
-# ------------------------------------------------------------------
 
-resource "azurerm_resource_group" "rg" {
-  name     = "mesh-project-rg"
-  location = "Central India"
-}
-
-# Use the original azurerm_spring_cloud_service resource
 # ------------------------------------------------------------------
 #  AZURE DEVOPS PIPELINES (The Assembly Lines)
 # ------------------------------------------------------------------
@@ -204,7 +188,6 @@ resource "azurerm_resource_group" "rg" {
 data "azuredevops_project" "project" {
   name = "Mesh"
 }
-
 
 # --- Pipeline for User Service ---
 resource "azuredevops_build_definition" "user_pipeline" {
@@ -216,7 +199,6 @@ resource "azuredevops_build_definition" "user_pipeline" {
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
     service_connection_id = "GopinathR20"
-    # This now points to the service-specific YAML file
     yml_path              = "Mesh-Microservices/user-service/azure-pipelines.yml"
   }
 }
@@ -230,7 +212,6 @@ resource "azuredevops_build_definition" "admin_pipeline" {
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
     service_connection_id = "GopinathR20"
-    # This now points to the service-specific YAML file
     yml_path              = "Mesh-Microservices/admin-service/azure-pipelines.yml"
   }
 }
