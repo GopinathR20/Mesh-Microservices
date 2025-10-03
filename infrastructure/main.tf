@@ -36,7 +36,7 @@ resource "azurerm_spring_cloud_service" "asa" {
   name                = "mesh-spring-apps-env"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  sku_name            = "Standard"
+  sku_name            = "Basic"
 }
 
 # Create an app placeholder for each microservice
