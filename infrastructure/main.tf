@@ -53,8 +53,8 @@ resource "azurerm_container_app_environment" "aca_env" {
   name                       = "mesh-aca-env"
   location                   = azurerm_resource_group.rg.location
   resource_group_name        = azurerm_resource_group.rg.name
-  infrastructure_resource_group_name = "${azurerm_resource_group.rg.name}-infra"
-  log_analytics_workspace_id = null
+  //infrastructure_resource_group_name = "${azurerm_resource_group.rg.name}-infra"
+  //log_analytics_workspace_id = null
 
   workload_profile {
     name = "Consumption"
