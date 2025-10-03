@@ -36,7 +36,7 @@ resource "azurerm_spring_cloud_service" "asa" {
   name                = "mesh-spring-apps-env"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  sku_name            = "Basic"
+  sku_name            = "B0"
 }
 
 # Create an app placeholder for each microservice
@@ -80,6 +80,7 @@ data "azuredevops_project" "project" {
 }
 
 # --- Pipeline for User Service ---
+# --- Pipeline for User Service ---
 resource "azuredevops_build_definition" "user_pipeline" {
   project_id = data.azuredevops_project.project.id
   name       = "UserService-CI"
@@ -87,49 +88,39 @@ resource "azuredevops_build_definition" "user_pipeline" {
   repository {
     repo_type             = "GitHub"
     repo_id               = "GopinathR20/Mesh-Microservices"
-    branch_name           = "main"
+    branch_name           = "development" # Or "main" if you prefer
     service_connection_id = "GopinathR20"
+    # This points to the new, central YAML file
+    yml_path              = "infrastructure/azure-pipelines.yml"
   }
 
-  yaml {
-    content = yamlencode({
-      trigger = {
-        branches = { include = ["main"] },
-        paths    = { include = ["Mesh-Microservices/user-service/*"], exclude = ["infrastructure/*"] }
-      },
-      pool = { vmImage = "ubuntu-latest" },
-      steps = [
-        { task = "Maven@3", inputs = { mavenPomFile = "Mesh-Microservices/user-service/pom.xml", goals = "package" } },
-        { task = "AzureSpringCloud@1", inputs = { azureSubscription = "Azure for Students", Action = "Deploy", AzureSpringCloud = azurerm_spring_cloud_service.asa.name, AppName = azurerm_spring_cloud_app.user_app.name, JarFileOrFolderPath = "**/target/*.jar" } }
-      ]
-    })
+  # This block passes the unique details for this specific service
+  variables = {
+    "serviceDirectory"  = "user-service"
+    "serviceName"       = azurerm_spring_cloud_app.user_app.name
+    "springAppName"     = azurerm_spring_cloud_service.asa.name
+    "azureSubscription" = "Azure for Students"
   }
 }
-
 # --- Pipeline for Admin Service ---
-resource "azuredevops_build_definition" "admin_pipeline" {
+# --- Pipeline for Admin Service ---
+resource "azuredevops_build_definition" "admin_pipeline" { # <-- Change 1
   project_id = data.azuredevops_project.project.id
-  name       = "AdminService-CI"
+  name       = "AdminService-CI" # <-- Change 2
 
   repository {
     repo_type             = "GitHub"
     repo_id               = "GopinathR20/Mesh-Microservices"
-    branch_name           = "main"
+    branch_name           = "development"
     service_connection_id = "GopinathR20"
+    yml_path              = "infrastructure/azure-pipelines.yml"
   }
 
-  yaml {
-    content = yamlencode({
-      trigger = {
-        branches = { include = ["main"] },
-        paths    = { include = ["Mesh-Microservices/admin-service/*"], exclude = ["infrastructure/*"] }
-      },
-      pool = { vmImage = "ubuntu-latest" },
-      steps = [
-        { task = "Maven@3", inputs = { mavenPomFile = "Mesh-Microservices/admin-service/pom.xml", goals = "package" } },
-        { task = "AzureSpringCloud@1", inputs = { azureSubscription = "Azure for Students", Action = "Deploy", AzureSpringCloud = azurerm_spring_cloud_service.asa.name, AppName = azurerm_spring_cloud_app.admin_app.name, JarFileOrFolderPath = "**/target/*.jar" } }
-      ]
-    })
+  variables = {
+    "serviceDirectory"  = "admin-service" # <-- Change 3
+    "serviceName"       = azurerm_spring_cloud_app.admin_app.name # <-- Change 4
+    "springAppName"     = azurerm_spring_cloud_service.asa.name
+    "azureSubscription" = "Azure for Students"
   }
 }
 
@@ -141,24 +132,19 @@ resource "azuredevops_build_definition" "classroom_pipeline" {
   repository {
     repo_type             = "GitHub"
     repo_id               = "GopinathR20/Mesh-Microservices"
-    branch_name           = "main"
+    branch_name           = "development"
     service_connection_id = "GopinathR20"
+    yml_path              = "infrastructure/azure-pipelines.yml"
   }
 
-  yaml {
-    content = yamlencode({
-      trigger = {
-        branches = { include = ["main"] },
-        paths    = { include = ["Mesh-Microservices/classroom-service/*"], exclude = ["infrastructure/*"] }
-      },
-      pool = { vmImage = "ubuntu-latest" },
-      steps = [
-        { task = "Maven@3", inputs = { mavenPomFile = "Mesh-Microservices/classroom-service/pom.xml", goals = "package" } },
-        { task = "AzureSpringCloud@1", inputs = { azureSubscription = "Azure for Students", Action = "Deploy", AzureSpringCloud = azurerm_spring_cloud_service.asa.name, AppName = azurerm_spring_cloud_app.classroom_app.name, JarFileOrFolderPath = "**/target/*.jar" } }
-      ]
-    })
+  variables = {
+    "serviceDirectory"  = "classroom-service"
+    "serviceName"       = azurerm_spring_cloud_app.classroom_app.name
+    "springAppName"     = azurerm_spring_cloud_service.asa.name
+    "azureSubscription" = "Azure for Students"
   }
 }
+
 
 # --- Pipeline for API Gateway ---
 resource "azuredevops_build_definition" "gateway_pipeline" {
@@ -168,22 +154,16 @@ resource "azuredevops_build_definition" "gateway_pipeline" {
   repository {
     repo_type             = "GitHub"
     repo_id               = "GopinathR20/Mesh-Microservices"
-    branch_name           = "main"
+    branch_name           = "development"
     service_connection_id = "GopinathR20"
+    yml_path              = "infrastructure/azure-pipelines.yml"
   }
 
-  yaml {
-    content = yamlencode({
-      trigger = {
-        branches = { include = ["main"] },
-        paths    = { include = ["Mesh-Microservices/api-gateway/*"], exclude = ["infrastructure/*"] }
-      },
-      pool = { vmImage = "ubuntu-latest" },
-      steps = [
-        { task = "Maven@3", inputs = { mavenPomFile = "Mesh-Microservices/api-gateway/pom.xml", goals = "package" } },
-        { task = "AzureSpringCloud@1", inputs = { azureSubscription = "Azure for Students", Action = "Deploy", AzureSpringCloud = azurerm_spring_cloud_service.asa.name, AppName = azurerm_spring_cloud_app.gateway_app.name, JarFileOrFolderPath = "**/target/*.jar" } }
-      ]
-    })
+  variables = {
+    "serviceDirectory"  = "api-gateway"
+    "serviceName"       = azurerm_spring_cloud_app.gateway_app.name
+    "springAppName"     = azurerm_spring_cloud_service.asa.name
+    "azureSubscription" = "Azure for Students"
   }
 }
 
@@ -195,21 +175,15 @@ resource "azuredevops_build_definition" "discovery_pipeline" {
   repository {
     repo_type             = "GitHub"
     repo_id               = "GopinathR20/Mesh-Microservices"
-    branch_name           = "main"
+    branch_name           = "development"
     service_connection_id = "GopinathR20"
+    yml_path              = "infrastructure/azure-pipelines.yml"
   }
 
-  yaml {
-    content = yamlencode({
-      trigger = {
-        branches = { include = ["main"] },
-        paths    = { include = ["Mesh-Microservices/discovery-server/*"], exclude = ["infrastructure/*"] }
-      },
-      pool = { vmImage = "ubuntu-latest" },
-      steps = [
-        { task = "Maven@3", inputs = { mavenPomFile = "Mesh-Microservices/discovery-server/pom.xml", goals = "package" } },
-        { task = "AzureSpringCloud@1", inputs = { azureSubscription = "Azure for Students", Action = "Deploy", AzureSpringCloud = azurerm_spring_cloud_service.asa.name, AppName = azurerm_spring_cloud_app.discovery_app.name, JarFileOrFolderPath = "**/target/*.jar" } }
-      ]
-    })
+  variables = {
+    "serviceDirectory"  = "discovery-server"
+    "serviceName"       = azurerm_spring_cloud_app.discovery_app.name
+    "springAppName"     = azurerm_spring_cloud_service.asa.name
+    "azureSubscription" = "Azure for Students"
   }
 }

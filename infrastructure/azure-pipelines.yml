@@ -1,0 +1,37 @@
+# This is a generic template for all our Spring Boot services
+# The trigger paths tell the pipeline WHEN to run.
+# The variables tell the pipeline WHAT to build.
+
+trigger:
+  branches:
+    include:
+      - development
+  paths:
+    include:
+      - 'Mesh-Microservices/$(serviceDirectory)/*' # e.g., Mesh-Microservices/user-service/*
+    exclude:
+      - 'infrastructure/*'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: Maven@3
+    displayName: 'Build $(serviceName)'
+    inputs:
+      mavenPomFile: 'Mesh-Microservices/$(serviceDirectory)/pom.xml'
+      goals: 'package'
+      publishJUnitResults: true
+      testResultsFiles: '**/surefire-reports/TEST-*.xml'
+      javaHomeOption: 'JDKVersion'
+      jdkVersionOption: '1.17'
+
+  - task: AzureSpringCloud@1
+    displayName: 'Deploy $(serviceName) to Azure Spring Apps'
+    inputs:
+      azureSubscription: '$(azureSubscription)'
+      Action: 'Deploy'
+      AzureSpringCloud: '$(springAppName)'
+      AppName: '$(serviceName)'
+      DeploymentType: 'JAR'
+      JarFileOrFolderPath: '**/target/*.jar'
