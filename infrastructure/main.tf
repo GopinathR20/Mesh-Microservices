@@ -33,14 +33,26 @@ resource "azurerm_resource_group" "rg" {
 }
 
 # ------------------------------------------------------------------
-#  AZURE CONTAINER APPS (Cost-Effective Microservices Host)
+#  AZURE CONTAINER REGISTRY (ACR) - NEW RESOURCE
+# ------------------------------------------------------------------
+
+resource "azurerm_container_registry" "acr" {
+  # Ensures a globally unique name using part of the resource group hash
+  name                = "meshregistry${substr(md5(azurerm_resource_group.rg.name), 0, 5)}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  sku                 = "Basic"
+  admin_enabled       = true # Required for username/password authentication
+}
+
+# ------------------------------------------------------------------
+#  AZURE CONTAINER APPS ENVIRONMENT
 # ------------------------------------------------------------------
 
 resource "azurerm_container_app_environment" "aca_env" {
   name                       = "mesh-aca-env"
   location                   = azurerm_resource_group.rg.location
   resource_group_name        = azurerm_resource_group.rg.name
-  # This setting is required for the free Consumption plan
   infrastructure_resource_group_name = "${azurerm_resource_group.rg.name}-infra"
   log_analytics_workspace_id = null
 
@@ -50,7 +62,7 @@ resource "azurerm_container_app_environment" "aca_env" {
   }
 }
 
-# 1. API Gateway (EXTERNAL FACING) - STRUCTURALLY CORRECT
+# 1. API Gateway (EXTERNAL FACING) - AUTHENTICATION ADDED
 resource "azurerm_container_app" "gateway_app" {
   name                    = "api-gateway-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
@@ -60,14 +72,26 @@ resource "azurerm_container_app" "gateway_app" {
   template {
     container {
       name   = "api-gateway"
-      image  = "yourregistry/api-gateway:latest"
+      # FIXED IMAGE PATH: Pull from the newly created ACR
+      image  = "${azurerm_container_registry.acr.login_server}/api-gateway:latest"
       cpu    = 0.5
       memory = "1.0Gi"
     }
-    # CORRECT FIX: Scaling properties are direct arguments of the template block
     min_replicas = 0
     max_replicas = 1
   }
+
+  # --- IMAGE PULL AUTHENTICATION ---
+  registry {
+    server           = azurerm_container_registry.acr.login_server
+    username         = azurerm_container_registry.acr.admin_username
+    password_secret_name = "acr-password"
+  }
+  secret {
+    name  = "acr-password"
+    value = azurerm_container_registry.acr.admin_password
+  }
+  # ---------------------------------
 
   ingress {
     external_enabled = true
@@ -80,7 +104,7 @@ resource "azurerm_container_app" "gateway_app" {
   }
 }
 
-# 2. User Service (INTERNAL ONLY) - STRUCTURALLY CORRECT
+# 2. User Service (INTERNAL ONLY) - AUTHENTICATION ADDED
 resource "azurerm_container_app" "user_app" {
   name                    = "user-service-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
@@ -90,12 +114,22 @@ resource "azurerm_container_app" "user_app" {
   template {
     container {
       name   = "user-service"
-      image  = "yourregistry/user-service:latest"
+      image  = "${azurerm_container_registry.acr.login_server}/user-service:latest"
       cpu    = 0.5
       memory = "1.0Gi"
     }
     min_replicas = 0
     max_replicas = 1
+  }
+
+  registry {
+    server           = azurerm_container_registry.acr.login_server
+    username         = azurerm_container_registry.acr.admin_username
+    password_secret_name = "acr-password"
+  }
+  secret {
+    name  = "acr-password"
+    value = azurerm_container_registry.acr.admin_password
   }
 
   ingress {
@@ -109,7 +143,7 @@ resource "azurerm_container_app" "user_app" {
   }
 }
 
-# 3. Admin Service (INTERNAL ONLY) - STRUCTURALLY CORRECT
+# 3. Admin Service (INTERNAL ONLY) - AUTHENTICATION ADDED
 resource "azurerm_container_app" "admin_app" {
   name                    = "admin-service-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
@@ -119,12 +153,22 @@ resource "azurerm_container_app" "admin_app" {
   template {
     container {
       name   = "admin-service"
-      image  = "yourregistry/admin-service:latest"
+      image  = "${azurerm_container_registry.acr.login_server}/admin-service:latest"
       cpu    = 0.5
       memory = "1.0Gi"
     }
     min_replicas = 0
     max_replicas = 1
+  }
+
+  registry {
+    server           = azurerm_container_registry.acr.login_server
+    username         = azurerm_container_registry.acr.admin_username
+    password_secret_name = "acr-password"
+  }
+  secret {
+    name  = "acr-password"
+    value = azurerm_container_registry.acr.admin_password
   }
 
   ingress {
@@ -138,7 +182,7 @@ resource "azurerm_container_app" "admin_app" {
   }
 }
 
-# 4. Classroom Service (INTERNAL ONLY) - STRUCTURALLY CORRECT
+# 4. Classroom Service (INTERNAL ONLY) - AUTHENTICATION ADDED
 resource "azurerm_container_app" "classroom_app" {
   name                    = "classroom-service-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
@@ -148,12 +192,22 @@ resource "azurerm_container_app" "classroom_app" {
   template {
     container {
       name   = "classroom-service"
-      image  = "yourregistry/classroom-service:latest"
+      image  = "${azurerm_container_registry.acr.login_server}/classroom-service:latest"
       cpu    = 0.5
       memory = "1.0Gi"
     }
     min_replicas = 0
     max_replicas = 1
+  }
+
+  registry {
+    server           = azurerm_container_registry.acr.login_server
+    username         = azurerm_container_registry.acr.admin_username
+    password_secret_name = "acr-password"
+  }
+  secret {
+    name  = "acr-password"
+    value = azurerm_container_registry.acr.admin_password
   }
 
   ingress {
@@ -167,7 +221,7 @@ resource "azurerm_container_app" "classroom_app" {
   }
 }
 
-# 5. Discovery Server (INTERNAL ONLY) - STRUCTURALLY CORRECT
+# 5. Discovery Server (INTERNAL ONLY) - AUTHENTICATION ADDED
 resource "azurerm_container_app" "discovery_app" {
   name                    = "discovery-server-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
@@ -177,12 +231,22 @@ resource "azurerm_container_app" "discovery_app" {
   template {
     container {
       name   = "discovery-server"
-      image  = "yourregistry/discovery-server:latest"
+      image  = "${azurerm_container_registry.acr.login_server}/discovery-server:latest"
       cpu    = 0.5
       memory = "1.0Gi"
     }
     min_replicas = 0
     max_replicas = 1
+  }
+
+  registry {
+    server           = azurerm_container_registry.acr.login_server
+    username         = azurerm_container_registry.acr.admin_username
+    password_secret_name = "acr-password"
+  }
+  secret {
+    name  = "acr-password"
+    value = azurerm_container_registry.acr.admin_password
   }
 
   ingress {
