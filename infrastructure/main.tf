@@ -10,7 +10,6 @@ terraform {
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      # This line forces Terraform to use a newer version
       version = ">= 3.74.0"
     }
   }
@@ -41,7 +40,7 @@ resource "azurerm_container_app_environment" "aca_env" {
   name                       = "mesh-aca-env"
   location                   = azurerm_resource_group.rg.location
   resource_group_name        = azurerm_resource_group.rg.name
-  # Consumption Plan is required for the free tier (scales to zero)
+  # This setting is required for the free Consumption plan
   infrastructure_resource_group_name = "${azurerm_resource_group.rg.name}-infra"
   log_analytics_workspace_id = null
 
@@ -51,42 +50,43 @@ resource "azurerm_container_app_environment" "aca_env" {
   }
 }
 
-# 1. API Gateway (EXTERNAL FACING)
+# 1. API Gateway (EXTERNAL FACING) - STRUCTURALLY CORRECT
 resource "azurerm_container_app" "gateway_app" {
   name                    = "api-gateway-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name     = azurerm_resource_group.rg.name
   revision_mode           = "Single"
+
   template {
     container {
       name   = "api-gateway"
-      image  = "yourregistry/api-gateway:latest" # Placeholder: Update with your ACR path
+      image  = "yourregistry/api-gateway:latest"
       cpu    = 0.5
       memory = "1.0Gi"
     }
-    scale {
-      min_replicas = 0 # KEY: Scales down to zero when idle
-      max_replicas = 1
-    }
+    # CORRECT FIX: Scaling properties are direct arguments of the template block
+    min_replicas = 0
+    max_replicas = 1
   }
 
   ingress {
-    external_enabled = true  # PUBLIC ACCESS
+    external_enabled = true
     target_port      = 8080
     transport        = "auto"
-  traffic_weight {
-    latest_revision = true
-    percentage      = 100
-  }
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
   }
 }
 
-# 2. User Service (INTERNAL ONLY)
+# 2. User Service (INTERNAL ONLY) - STRUCTURALLY CORRECT
 resource "azurerm_container_app" "user_app" {
   name                    = "user-service-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name     = azurerm_resource_group.rg.name
   revision_mode           = "Single"
+
   template {
     container {
       name   = "user-service"
@@ -94,14 +94,12 @@ resource "azurerm_container_app" "user_app" {
       cpu    = 0.5
       memory = "1.0Gi"
     }
-    scale {
-      min_replicas = 0
-      max_replicas = 1
-    }
+    min_replicas = 0
+    max_replicas = 1
   }
 
   ingress {
-    external_enabled = false # INTERNAL ACCESS ONLY
+    external_enabled = false
     target_port      = 8080
     transport        = "auto"
     traffic_weight {
@@ -111,12 +109,13 @@ resource "azurerm_container_app" "user_app" {
   }
 }
 
-# 3. Admin Service (INTERNAL ONLY)
+# 3. Admin Service (INTERNAL ONLY) - STRUCTURALLY CORRECT
 resource "azurerm_container_app" "admin_app" {
   name                    = "admin-service-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name     = azurerm_resource_group.rg.name
   revision_mode           = "Single"
+
   template {
     container {
       name   = "admin-service"
@@ -124,10 +123,8 @@ resource "azurerm_container_app" "admin_app" {
       cpu    = 0.5
       memory = "1.0Gi"
     }
-    scale {
-      min_replicas = 0
-      max_replicas = 1
-    }
+    min_replicas = 0
+    max_replicas = 1
   }
 
   ingress {
@@ -141,12 +138,13 @@ resource "azurerm_container_app" "admin_app" {
   }
 }
 
-# 4. Classroom Service (INTERNAL ONLY)
+# 4. Classroom Service (INTERNAL ONLY) - STRUCTURALLY CORRECT
 resource "azurerm_container_app" "classroom_app" {
   name                    = "classroom-service-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name     = azurerm_resource_group.rg.name
   revision_mode           = "Single"
+
   template {
     container {
       name   = "classroom-service"
@@ -154,10 +152,8 @@ resource "azurerm_container_app" "classroom_app" {
       cpu    = 0.5
       memory = "1.0Gi"
     }
-    scale {
-      min_replicas = 0
-      max_replicas = 1
-    }
+    min_replicas = 0
+    max_replicas = 1
   }
 
   ingress {
@@ -171,12 +167,13 @@ resource "azurerm_container_app" "classroom_app" {
   }
 }
 
-# 5. Discovery Server (INTERNAL ONLY)
+# 5. Discovery Server (INTERNAL ONLY) - STRUCTURALLY CORRECT
 resource "azurerm_container_app" "discovery_app" {
   name                    = "discovery-server-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name     = azurerm_resource_group.rg.name
   revision_mode           = "Single"
+
   template {
     container {
       name   = "discovery-server"
@@ -184,10 +181,8 @@ resource "azurerm_container_app" "discovery_app" {
       cpu    = 0.5
       memory = "1.0Gi"
     }
-    scale {
-      min_replicas = 0
-      max_replicas = 1
-    }
+    min_replicas = 0
+    max_replicas = 1
   }
 
   ingress {
