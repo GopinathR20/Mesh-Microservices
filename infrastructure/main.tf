@@ -25,9 +25,168 @@ provider "azurerm" {
 }
 
 # ------------------------------------------------------------------
-#  AZURE INFRASTRUCTURE (The Home for Your Microservices)
+#  AZURE CONTAINER APPS (Cost-Effective Microservices Host)
 # ------------------------------------------------------------------
 
+resource "azurerm_container_app_environment" "aca_env" {
+  name                       = "mesh-aca-env"
+  location                   = azurerm_resource_group.rg.location
+  resource_group_name        = azurerm_resource_group.rg.name
+  # The Infrastructure Resource Group is required for Consumption (Free) Plan
+  infrastructure_resource_group_name = "${azurerm_resource_group.rg.name}-infra"
+  # Set to null or remove if not using a Log Analytics Workspace
+  log_analytics_workspace_id = null
+}
+
+# ------------------------------------------------------------------
+#  1. API Gateway (EXTERNAL FACING)
+# ------------------------------------------------------------------
+# This service needs public ingress to handle incoming client traffic.
+
+resource "azurerm_container_app" "gateway_app" {
+  name                    = "api-gateway-app"
+  container_app_environment_id = azurerm_container_app_environment.aca_env.id
+  resource_group_name     = azurerm_resource_group.rg.name
+
+  template {
+    container {
+      name   = "api-gateway"
+      # IMPORTANT: Update this image path after setting up your Container Registry/CI
+      image  = "yourregistry/api-gateway:latest"
+      cpu    = 0.5
+      memory = "1.0Gi"
+    }
+    scale {
+      min_replicas = 0 # Scales down to zero when idle (maximizes free tier usage)
+      max_replicas = 1
+    }
+  }
+
+  ingress {
+    external_enabled = true  # PUBLIC ACCESS
+    target_port      = 8080 # Service port
+    transport        = "auto"
+  }
+}
+
+# ------------------------------------------------------------------
+#  2. User Service (INTERNAL ONLY)
+# ------------------------------------------------------------------
+# This service is protected and only accessed by the API Gateway.
+
+resource "azurerm_container_app" "user_app" {
+  name                    = "user-service-app"
+  container_app_environment_id = azurerm_container_app_environment.aca_env.id
+  resource_group_name     = azurerm_resource_group.rg.name
+
+  template {
+    container {
+      name   = "user-service"
+      image  = "yourregistry/user-service:latest"
+      cpu    = 0.5
+      memory = "1.0Gi"
+    }
+    scale {
+      min_replicas = 0
+      max_replicas = 1
+    }
+  }
+
+  ingress {
+    external_enabled = false # INTERNAL ACCESS ONLY
+    target_port      = 8080
+    transport        = "auto"
+  }
+}
+
+# ------------------------------------------------------------------
+#  3. Admin Service (INTERNAL ONLY)
+# ------------------------------------------------------------------
+
+resource "azurerm_container_app" "admin_app" {
+  name                    = "admin-service-app"
+  container_app_environment_id = azurerm_container_app_environment.aca_env.id
+  resource_group_name     = azurerm_resource_group.rg.name
+
+  template {
+    container {
+      name   = "admin-service"
+      image  = "yourregistry/admin-service:latest"
+      cpu    = 0.5
+      memory = "1.0Gi"
+    }
+    scale {
+      min_replicas = 0
+      max_replicas = 1
+    }
+  }
+
+  ingress {
+    external_enabled = false # INTERNAL ACCESS ONLY
+    target_port      = 8080
+    transport        = "auto"
+  }
+}
+
+# ------------------------------------------------------------------
+#  4. Classroom Service (INTERNAL ONLY)
+# ------------------------------------------------------------------
+
+resource "azurerm_container_app" "classroom_app" {
+  name                    = "classroom-service-app"
+  container_app_environment_id = azurerm_container_app_environment.aca_env.id
+  resource_group_name     = azurerm_resource_group.rg.name
+
+  template {
+    container {
+      name   = "classroom-service"
+      image  = "yourregistry/classroom-service:latest"
+      cpu    = 0.5
+      memory = "1.0Gi"
+    }
+    scale {
+      min_replicas = 0
+      max_replicas = 1
+    }
+  }
+
+  ingress {
+    external_enabled = false # INTERNAL ACCESS ONLY
+    target_port      = 8080
+    transport        = "auto"
+  }
+}
+
+# ------------------------------------------------------------------
+#  5. Discovery Server (INTERNAL ONLY)
+# ------------------------------------------------------------------
+# Note: For a true Discovery Server (like Eureka), you might eventually want min_replicas = 1
+# to ensure it's always running, but we are setting it to 0 here for maximum cost-saving.
+
+resource "azurerm_container_app" "discovery_app" {
+  name                    = "discovery-server-app"
+  container_app_environment_id = azurerm_container_app_environment.aca_env.id
+  resource_group_name     = azurerm_resource_group.rg.name
+
+  template {
+    container {
+      name   = "discovery-server"
+      image  = "yourregistry/discovery-server:latest"
+      cpu    = 0.5
+      memory = "1.0Gi"
+    }
+    scale {
+      min_replicas = 0
+      max_replicas = 1
+    }
+  }
+
+  ingress {
+    external_enabled = false # INTERNAL ACCESS ONLY
+    target_port      = 8080
+    transport        = "auto"
+  }
+}
 # ------------------------------------------------------------------
 #  AZURE INFRASTRUCTURE (The Home for Your Microservices)
 # ------------------------------------------------------------------
@@ -38,43 +197,6 @@ resource "azurerm_resource_group" "rg" {
 }
 
 # Use the original azurerm_spring_cloud_service resource
-resource "azurerm_spring_cloud_service" "asa" {
-  name                = "mesh-spring-cloud-svc"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  sku_name            = "B0" # Basic Tier
-}
-
-# Use the original azurerm_spring_cloud_app resource for each service
-resource "azurerm_spring_cloud_app" "user_app" {
-  name                = "user-service"
-  resource_group_name = azurerm_resource_group.rg.name
-  service_name        = azurerm_spring_cloud_service.asa.name
-}
-
-resource "azurerm_spring_cloud_app" "admin_app" {
-  name                = "admin-service"
-  resource_group_name = azurerm_resource_group.rg.name
-  service_name        = azurerm_spring_cloud_service.asa.name
-}
-
-resource "azurerm_spring_cloud_app" "classroom_app" {
-  name                = "classroom-service"
-  resource_group_name = azurerm_resource_group.rg.name
-  service_name        = azurerm_spring_cloud_service.asa.name
-}
-
-resource "azurerm_spring_cloud_app" "gateway_app" {
-  name                = "api-gateway"
-  resource_group_name = azurerm_resource_group.rg.name
-  service_name        = azurerm_spring_cloud_service.asa.name
-}
-
-resource "azurerm_spring_cloud_app" "discovery_app" {
-  name                = "discovery-server"
-  resource_group_name = azurerm_resource_group.rg.name
-  service_name        = azurerm_spring_cloud_service.asa.name
-}
 # ------------------------------------------------------------------
 #  AZURE DEVOPS PIPELINES (The Assembly Lines)
 # ------------------------------------------------------------------
