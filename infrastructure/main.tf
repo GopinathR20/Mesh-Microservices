@@ -56,7 +56,7 @@ resource "azurerm_container_app" "gateway_app" {
   name                    = "api-gateway-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name     = azurerm_resource_group.rg.name
-
+  revision_mode           = "Single"
   template {
     container {
       name   = "api-gateway"
@@ -74,6 +74,10 @@ resource "azurerm_container_app" "gateway_app" {
     external_enabled = true  # PUBLIC ACCESS
     target_port      = 8080
     transport        = "auto"
+  traffic_weight {
+    latest_revision = true
+    percentage      = 100
+  }
   }
 }
 
@@ -82,7 +86,7 @@ resource "azurerm_container_app" "user_app" {
   name                    = "user-service-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name     = azurerm_resource_group.rg.name
-
+  revision_mode           = "Single"
   template {
     container {
       name   = "user-service"
@@ -100,6 +104,10 @@ resource "azurerm_container_app" "user_app" {
     external_enabled = false # INTERNAL ACCESS ONLY
     target_port      = 8080
     transport        = "auto"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
   }
 }
 
@@ -108,7 +116,7 @@ resource "azurerm_container_app" "admin_app" {
   name                    = "admin-service-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name     = azurerm_resource_group.rg.name
-
+  revision_mode           = "Single"
   template {
     container {
       name   = "admin-service"
@@ -126,6 +134,10 @@ resource "azurerm_container_app" "admin_app" {
     external_enabled = false
     target_port      = 8080
     transport        = "auto"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
   }
 }
 
@@ -134,7 +146,7 @@ resource "azurerm_container_app" "classroom_app" {
   name                    = "classroom-service-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name     = azurerm_resource_group.rg.name
-
+  revision_mode           = "Single"
   template {
     container {
       name   = "classroom-service"
@@ -152,6 +164,10 @@ resource "azurerm_container_app" "classroom_app" {
     external_enabled = false
     target_port      = 8080
     transport        = "auto"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
   }
 }
 
@@ -160,7 +176,7 @@ resource "azurerm_container_app" "discovery_app" {
   name                    = "discovery-server-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name     = azurerm_resource_group.rg.name
-
+  revision_mode           = "Single"
   template {
     container {
       name   = "discovery-server"
@@ -178,6 +194,10 @@ resource "azurerm_container_app" "discovery_app" {
     external_enabled = false
     target_port      = 8080
     transport        = "auto"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
   }
 }
 
