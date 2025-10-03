@@ -79,7 +79,7 @@ data "azuredevops_project" "project" {
   name = "Mesh"
 }
 
-# --- Pipeline for User Service ---
+
 # --- Pipeline for User Service ---
 resource "azuredevops_build_definition" "user_pipeline" {
   project_id = data.azuredevops_project.project.id
@@ -88,42 +88,26 @@ resource "azuredevops_build_definition" "user_pipeline" {
   repository {
     repo_type             = "GitHub"
     repo_id               = "GopinathR20/Mesh-Microservices"
-    branch_name           = "development" # Or "main" if you prefer
+    branch_name           = "development"
     service_connection_id = "GopinathR20"
-    # This points to the new, central YAML file
-    yml_path              = "infrastructure/azure-pipelines.yml"
-  }
-
-  # This block passes the unique details for this specific service
-  variables = {
-    "serviceDirectory"  = "user-service"
-    "serviceName"       = azurerm_spring_cloud_app.user_app.name
-    "springAppName"     = azurerm_spring_cloud_service.asa.name
-    "azureSubscription" = "Azure for Students"
+    # This now points to the service-specific YAML file
+    yml_path              = "Mesh-Microservices/user-service/azure-pipelines.yml"
   }
 }
 # --- Pipeline for Admin Service ---
-# --- Pipeline for Admin Service ---
-resource "azuredevops_build_definition" "admin_pipeline" { # <-- Change 1
+resource "azuredevops_build_definition" "admin_pipeline" {
   project_id = data.azuredevops_project.project.id
-  name       = "AdminService-CI" # <-- Change 2
+  name       = "AdminService-CI"
 
   repository {
     repo_type             = "GitHub"
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
     service_connection_id = "GopinathR20"
-    yml_path              = "infrastructure/azure-pipelines.yml"
-  }
-
-  variables = {
-    "serviceDirectory"  = "admin-service" # <-- Change 3
-    "serviceName"       = azurerm_spring_cloud_app.admin_app.name # <-- Change 4
-    "springAppName"     = azurerm_spring_cloud_service.asa.name
-    "azureSubscription" = "Azure for Students"
+    # This now points to the service-specific YAML file
+    yml_path              = "Mesh-Microservices/admin-service/azure-pipelines.yml"
   }
 }
-
 # --- Pipeline for Classroom Service ---
 resource "azuredevops_build_definition" "classroom_pipeline" {
   project_id = data.azuredevops_project.project.id
@@ -134,17 +118,9 @@ resource "azuredevops_build_definition" "classroom_pipeline" {
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
     service_connection_id = "GopinathR20"
-    yml_path              = "infrastructure/azure-pipelines.yml"
-  }
-
-  variables = {
-    "serviceDirectory"  = "classroom-service"
-    "serviceName"       = azurerm_spring_cloud_app.classroom_app.name
-    "springAppName"     = azurerm_spring_cloud_service.asa.name
-    "azureSubscription" = "Azure for Students"
+    yml_path              = "Mesh-Microservices/classroom-service/azure-pipelines.yml"
   }
 }
-
 
 # --- Pipeline for API Gateway ---
 resource "azuredevops_build_definition" "gateway_pipeline" {
@@ -156,17 +132,9 @@ resource "azuredevops_build_definition" "gateway_pipeline" {
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
     service_connection_id = "GopinathR20"
-    yml_path              = "infrastructure/azure-pipelines.yml"
-  }
-
-  variables = {
-    "serviceDirectory"  = "api-gateway"
-    "serviceName"       = azurerm_spring_cloud_app.gateway_app.name
-    "springAppName"     = azurerm_spring_cloud_service.asa.name
-    "azureSubscription" = "Azure for Students"
+    yml_path              = "Mesh-Microservices/api-gateway/azure-pipelines.yml"
   }
 }
-
 # --- Pipeline for Discovery Server ---
 resource "azuredevops_build_definition" "discovery_pipeline" {
   project_id = data.azuredevops_project.project.id
@@ -177,13 +145,6 @@ resource "azuredevops_build_definition" "discovery_pipeline" {
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
     service_connection_id = "GopinathR20"
-    yml_path              = "infrastructure/azure-pipelines.yml"
-  }
-
-  variables = {
-    "serviceDirectory"  = "discovery-server"
-    "serviceName"       = azurerm_spring_cloud_app.discovery_app.name
-    "springAppName"     = azurerm_spring_cloud_service.asa.name
-    "azureSubscription" = "Azure for Students"
+    yml_path              = "Mesh-Microservices/discovery-server/azure-pipelines.yml"
   }
 }
