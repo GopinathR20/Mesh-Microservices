@@ -50,45 +50,44 @@ resource "azurerm_application_insights" "ai" {
   workspace_id        = azurerm_log_analytics_workspace.law.id
 }
 
-# This is the new Azure Spring Apps Environment (Consumption Plan)
-resource "azurerm_spring_cloud_environment" "asa_env" {
-  name                = "mesh-spring-environment"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+# This is the correct resource for the new environment
+resource "azurerm_spring_apps_environment" "asa_env" {
+  name                       = "mesh-spring-environment"
+  resource_group_name        = azurerm_resource_group.rg.name
+  location                   = azurerm_resource_group.rg.location
   log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 }
 
-# Create an app placeholder for each microservice using the new resource
-resource "azurerm_spring_cloud_app" "user_app" {
-  name                 = "user-service"
-  resource_group_name  = azurerm_resource_group.rg.name
-  spring_apps_environment_id = azurerm_spring_cloud_environment.asa_env.id
+# This is the correct resource for the new apps
+resource "azurerm_spring_app" "user_app" {
+  name                       = "user-service"
+  resource_group_name        = azurerm_resource_group.rg.name
+  spring_apps_environment_id = azurerm_spring_apps_environment.asa_env.id
 }
 
-resource "azurerm_spring_cloud_app" "admin_app" {
-  name                 = "admin-service"
-  resource_group_name  = azurerm_resource_group.rg.name
-  spring_apps_environment_id = azurerm_spring_cloud_environment.asa_env.id
+resource "azurerm_spring_app" "admin_app" {
+  name                       = "admin-service"
+  resource_group_name        = azurerm_resource_group.rg.name
+  spring_apps_environment_id = azurerm_spring_apps_environment.asa_env.id
 }
 
-resource "azurerm_spring_cloud_app" "classroom_app" {
-  name                 = "classroom-service"
-  resource_group_name  = azurerm_resource_group.rg.name
-  spring_apps_environment_id = azurerm_spring_cloud_environment.asa_env.id
+resource "azurerm_spring_app" "classroom_app" {
+  name                       = "classroom-service"
+  resource_group_name        = azurerm_resource_group.rg.name
+  spring_apps_environment_id = azurerm_spring_apps_environment.asa_env.id
 }
 
-resource "azurerm_spring_cloud_app" "gateway_app" {
-  name                 = "api-gateway"
-  resource_group_name  = azurerm_resource_group.rg.name
-  spring_apps_environment_id = azurerm_spring_cloud_environment.asa_env.id
+resource "azurerm_spring_app" "gateway_app" {
+  name                       = "api-gateway"
+  resource_group_name        = azurerm_resource_group.rg.name
+  spring_apps_environment_id = azurerm_spring_apps_environment.asa_env.id
 }
 
-resource "azurerm_spring_cloud_app" "discovery_app" {
-  name                 = "discovery-server"
-  resource_group_name  = azurerm_resource_group.rg.name
-  spring_apps_environment_id = azurerm_spring_cloud_environment.asa_env.id
+resource "azurerm_spring_app" "discovery_app" {
+  name                       = "discovery-server"
+  resource_group_name        = azurerm_resource_group.rg.name
+  spring_apps_environment_id = azurerm_spring_apps_environment.asa_env.id
 }
-
 # ------------------------------------------------------------------
 #  AZURE DEVOPS PIPELINES (The Assembly Lines)
 # ------------------------------------------------------------------
