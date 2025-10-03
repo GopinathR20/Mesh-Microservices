@@ -29,7 +29,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "rg" {
   name     = "mesh-project-rg"
-  location = "East US"
+  location = "Central India"
 }
 
 resource "azurerm_spring_cloud_service" "asa" {
