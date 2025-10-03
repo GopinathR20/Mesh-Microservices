@@ -68,7 +68,6 @@ resource "azurerm_container_app" "gateway_app" {
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name     = azurerm_resource_group.rg.name
   revision_mode           = "Single"
-
   template {
     container {
       name   = "api-gateway"
