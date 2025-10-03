@@ -28,65 +28,52 @@ provider "azurerm" {
 #  AZURE INFRASTRUCTURE (The Home for Your Microservices)
 # ------------------------------------------------------------------
 
+# ------------------------------------------------------------------
+#  AZURE INFRASTRUCTURE (The Home for Your Microservices)
+# ------------------------------------------------------------------
+
 resource "azurerm_resource_group" "rg" {
   name     = "mesh-project-rg"
   location = "Central India"
 }
 
-# The new service requires Log Analytics and Application Insights
-resource "azurerm_log_analytics_workspace" "law" {
-  name                = "mesh-log-analytics"
-  location            = azurerm_resource_group.rg.location
+# Use the original azurerm_spring_cloud_service resource
+resource "azurerm_spring_cloud_service" "asa" {
+  name                = "mesh-spring-cloud-svc"
   resource_group_name = azurerm_resource_group.rg.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-
-resource "azurerm_application_insights" "ai" {
-  name                = "mesh-app-insights"
   location            = azurerm_resource_group.rg.location
+  sku_name            = "B0" # Basic Tier
+}
+
+# Use the original azurerm_spring_cloud_app resource for each service
+resource "azurerm_spring_cloud_app" "user_app" {
+  name                = "user-service"
   resource_group_name = azurerm_resource_group.rg.name
-  application_type    = "web"
-  workspace_id        = azurerm_log_analytics_workspace.law.id
+  service_name        = azurerm_spring_cloud_service.asa.name
 }
 
-# This is the correct resource for the new environment
-resource "azurerm_spring_apps_environment" "asa_env" {
-  name                       = "mesh-spring-environment"
-  resource_group_name        = azurerm_resource_group.rg.name
-  location                   = azurerm_resource_group.rg.location
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
+resource "azurerm_spring_cloud_app" "admin_app" {
+  name                = "admin-service"
+  resource_group_name = azurerm_resource_group.rg.name
+  service_name        = azurerm_spring_cloud_service.asa.name
 }
 
-# This is the correct resource for the new apps
-resource "azurerm_spring_app" "user_app" {
-  name                       = "user-service"
-  resource_group_name        = azurerm_resource_group.rg.name
-  spring_apps_environment_id = azurerm_spring_apps_environment.asa_env.id
+resource "azurerm_spring_cloud_app" "classroom_app" {
+  name                = "classroom-service"
+  resource_group_name = azurerm_resource_group.rg.name
+  service_name        = azurerm_spring_cloud_service.asa.name
 }
 
-resource "azurerm_spring_app" "admin_app" {
-  name                       = "admin-service"
-  resource_group_name        = azurerm_resource_group.rg.name
-  spring_apps_environment_id = azurerm_spring_apps_environment.asa_env.id
+resource "azurerm_spring_cloud_app" "gateway_app" {
+  name                = "api-gateway"
+  resource_group_name = azurerm_resource_group.rg.name
+  service_name        = azurerm_spring_cloud_service.asa.name
 }
 
-resource "azurerm_spring_app" "classroom_app" {
-  name                       = "classroom-service"
-  resource_group_name        = azurerm_resource_group.rg.name
-  spring_apps_environment_id = azurerm_spring_apps_environment.asa_env.id
-}
-
-resource "azurerm_spring_app" "gateway_app" {
-  name                       = "api-gateway"
-  resource_group_name        = azurerm_resource_group.rg.name
-  spring_apps_environment_id = azurerm_spring_apps_environment.asa_env.id
-}
-
-resource "azurerm_spring_app" "discovery_app" {
-  name                       = "discovery-server"
-  resource_group_name        = azurerm_resource_group.rg.name
-  spring_apps_environment_id = azurerm_spring_apps_environment.asa_env.id
+resource "azurerm_spring_cloud_app" "discovery_app" {
+  name                = "discovery-server"
+  resource_group_name = azurerm_resource_group.rg.name
+  service_name        = azurerm_spring_cloud_service.asa.name
 }
 # ------------------------------------------------------------------
 #  AZURE DEVOPS PIPELINES (The Assembly Lines)
