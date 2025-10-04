@@ -137,8 +137,8 @@ resource "azuredevops_build_definition" "gateway_pipeline" {
     repo_type             = "GitHub"
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
-    service_connection_id = "GopinathR20"
-    yml_path              = "api-gateway/azure-pipelines.yml" # Corrected
+    service_connection_id = "GitHub-OAuth-Connection" # Corrected
+    yml_path              = "api-gateway/azure-pipelines.yml"
   }
 }
 
@@ -149,8 +149,8 @@ resource "azuredevops_build_definition" "user_pipeline" {
     repo_type             = "GitHub"
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
-    service_connection_id = "GopinathR20"
-    yml_path              = "user-service/azure-pipelines.yml" # Corrected
+    service_connection_id = "GitHub-OAuth-Connection" # Corrected
+    yml_path              = "user-service/azure-pipelines.yml"
   }
 }
 
@@ -161,8 +161,8 @@ resource "azuredevops_build_definition" "admin_pipeline" {
     repo_type             = "GitHub"
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
-    service_connection_id = "GopinathR20"
-    yml_path              = "admin-service/azure-pipelines.yml" # Corrected
+    service_connection_id = "GitHub-OAuth-Connection" # Corrected
+    yml_path              = "admin-service/azure-pipelines.yml"
   }
 }
 
@@ -173,8 +173,8 @@ resource "azuredevops_build_definition" "classroom_pipeline" {
     repo_type             = "GitHub"
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
-    service_connection_id = "GopinathR20"
-    yml_path              = "classroom-service/azure-pipelines.yml" # Corrected
+    service_connection_id = "GitHub-OAuth-Connection" # Corrected
+    yml_path              = "classroom-service/azure-pipelines.yml"
   }
 }
 
@@ -185,7 +185,7 @@ resource "azuredevops_build_definition" "discovery_pipeline" {
     repo_type             = "GitHub"
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
-    service_connection_id = "GopinathR20"
-    yml_path              = "discovery-server/azure-pipelines.yml" # Corrected
+    service_connection_id = "GitHub-OAuth-Connection" # Corrected
+    yml_path              = "discovery-server/azure-pipelines.yml"
   }
 }
