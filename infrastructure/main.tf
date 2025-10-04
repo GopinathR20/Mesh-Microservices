@@ -138,7 +138,7 @@ resource "azuredevops_build_definition" "gateway_pipeline" {
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
     service_connection_id = "GopinathR20"
-    yml_path              = "Mesh-Microservices/api-gateway/azure-pipelines.yml"
+    yml_path              = "api-gateway/azure-pipelines.yml" # Corrected
   }
 }
 
@@ -150,7 +150,7 @@ resource "azuredevops_build_definition" "user_pipeline" {
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
     service_connection_id = "GopinathR20"
-    yml_path              = "Mesh-Microservices/user-service/azure-pipelines.yml"
+    yml_path              = "user-service/azure-pipelines.yml" # Corrected
   }
 }
 
@@ -162,7 +162,7 @@ resource "azuredevops_build_definition" "admin_pipeline" {
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
     service_connection_id = "GopinathR20"
-    yml_path              = "Mesh-Microservices/admin-service/azure-pipelines.yml"
+    yml_path              = "admin-service/azure-pipelines.yml" # Corrected
   }
 }
 
@@ -174,7 +174,7 @@ resource "azuredevops_build_definition" "classroom_pipeline" {
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
     service_connection_id = "GopinathR20"
-    yml_path              = "Mesh-Microservices/classroom-service/azure-pipelines.yml"
+    yml_path              = "classroom-service/azure-pipelines.yml" # Corrected
   }
 }
 
@@ -186,6 +186,6 @@ resource "azuredevops_build_definition" "discovery_pipeline" {
     repo_id               = "GopinathR20/Mesh-Microservices"
     branch_name           = "development"
     service_connection_id = "GopinathR20"
-    yml_path              = "Mesh-Microservices/discovery-server/azure-pipelines.yml"
+    yml_path              = "discovery-server/azure-pipelines.yml" # Corrected
   }
 }
