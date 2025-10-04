@@ -46,12 +46,20 @@ resource "azurerm_container_app_environment" "aca_env" {
   resource_group_name = azurerm_resource_group.rg.name
 }
 
-# Create EMPTY container apps
+# Create container apps with a minimal placeholder template
 resource "azurerm_container_app" "gateway_app" {
   name                         = "api-gateway-app"
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
+  template {
+    container {
+      name   = "placeholder"
+      image  = "mcr.microsoft.com/k8se/apps/null-image:latest"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
 }
 
 resource "azurerm_container_app" "user_app" {
@@ -59,6 +67,14 @@ resource "azurerm_container_app" "user_app" {
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
+  template {
+    container {
+      name   = "placeholder"
+      image  = "mcr.microsoft.com/k8se/apps/null-image:latest"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
 }
 
 resource "azurerm_container_app" "admin_app" {
@@ -66,6 +82,14 @@ resource "azurerm_container_app" "admin_app" {
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
+  template {
+    container {
+      name   = "placeholder"
+      image  = "mcr.microsoft.com/k8se/apps/null-image:latest"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
 }
 
 resource "azurerm_container_app" "classroom_app" {
@@ -73,6 +97,14 @@ resource "azurerm_container_app" "classroom_app" {
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
+  template {
+    container {
+      name   = "placeholder"
+      image  = "mcr.microsoft.com/k8se/apps/null-image:latest"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
 }
 
 resource "azurerm_container_app" "discovery_app" {
@@ -80,6 +112,14 @@ resource "azurerm_container_app" "discovery_app" {
   container_app_environment_id = azurerm_container_app_environment.aca_env.id
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
+  template {
+    container {
+      name   = "placeholder"
+      image  = "mcr.microsoft.com/k8se/apps/null-image:latest"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
 }
 
 # ------------------------------------------------------------------
